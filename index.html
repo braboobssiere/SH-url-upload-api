@@ -33,6 +33,7 @@
 
 const form = document.getElementById("upload-form");
 const responseDiv = document.getElementById("response");
+let submittingForm = false;
 
 const savedApiKey = getCookie("apikey");
 if (savedApiKey) {
@@ -43,7 +44,9 @@ if (savedApiKey) {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  if (event.submitter && event.submitter.id === "upload-button") {
+  if (event.submitter && event.submitter.id === "upload-button" && !submittingForm) {
+    submittingForm = true;
+
     const apikey = document.getElementById("apikey").value;
     const url = document.getElementById("url").value;
     const filePublic = document.getElementById("public").checked ? 1 : 0;
@@ -54,15 +57,29 @@ form.addEventListener("submit", (event) => {
     fetch(apiUrl)
       .then(response => response.json())
       .then(data => {
-        responseDiv.innerHTML = JSON.stringify(data);
+        const filecode = data.result.filecode;
+        const serverTime = data.server_time;
+        const status = data.status;
+
+        const formattedResponse = `
+          <p>Upload Successful!</p>
+          <p>File Code: ${filecode}</p>
+          <p>Server Time: ${serverTime}</p>
+          <p>Status: ${status}</p>
+        `;
+        responseDiv.innerHTML = formattedResponse;
+
         if (rememberApiKey) {
           setCookie("apikey", apikey, 30);
         } else {
           deleteCookie("apikey");
         }
+
+        submittingForm = false;
       })
       .catch(error => {
         responseDiv.innerHTML = "Error: " + error.message;
+        submittingForm = false;
       });
   }
 });
@@ -92,7 +109,6 @@ function getCookie(name) {
 function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
-
 
   </script>
 </body>
