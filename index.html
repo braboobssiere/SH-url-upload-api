@@ -33,7 +33,7 @@
 
 const form = document.getElementById("upload-form");
 const responseDiv = document.getElementById("response");
-let submittingForm = false;
+let lastSubmitTime = 0;
 
 const savedApiKey = getCookie("apikey");
 if (savedApiKey) {
@@ -44,44 +44,38 @@ if (savedApiKey) {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  if (event.submitter.id === "upload-button" && !submittingForm) {
-    submittingForm = true;
-
-    const apikey = document.getElementById("apikey").value;
-    const url = document.getElementById("url").value;
-    const filePublic = document.getElementById("public").checked ? 1 : 0;
-    const fileAdult = document.getElementById("adult").checked ? 1 : 0;
-    const rememberApiKey = document.getElementById("remember-apikey").checked;
-    const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
-
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        const filecode = data.result.filecode;
-        const serverTime = data.server_time;
-        const status = data.status;
-
-        const formattedResponse = `
-          <p>Upload Successful!</p>
-          <p>File Code: ${filecode}</p>
-          <p>Server Time: ${serverTime}</p>
-          <p>Status: ${status}</p>
-        `;
-        responseDiv.innerHTML = formattedResponse;
-
-        if (rememberApiKey) {
-          setCookie("apikey", apikey, 30);
-        } else {
-          deleteCookie("apikey");
-        }
-
-        submittingForm = false;
-      })
-      .catch(error => {
-        responseDiv.innerHTML = "Error: " + error.message;
-        submittingForm = false;
-      });
+  const now = new Date().getTime();
+  const elapsedTime = now - lastSubmitTime;
+  if (elapsedTime < 1000) {
+    responseDiv.innerHTML = "Please wait for " + (1000 - elapsedTime) + " milliseconds before submitting again.";
+    return;
   }
+
+  const apikey = document.getElementById("apikey").value;
+  const url = document.getElementById("url").value;
+  const filePublic = document.getElementById("public").checked ? 1 : 0;
+  const fileAdult = document.getElementById("adult").checked ? 1 : 0;
+  const rememberApiKey = document.getElementById("remember-apikey").checked;
+  const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
+
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 200) {
+        responseDiv.innerHTML = "The file was successfully uploaded. Here's your file code: " + data.result.filecode;
+      } else {
+        responseDiv.innerHTML = "There was an error uploading the file: " + data.msg;
+      }
+      if (rememberApiKey) {
+        setCookie("apikey", apikey, 30);
+      } else {
+        deleteCookie("apikey");
+      }
+      lastSubmitTime = now;
+    })
+    .catch(error => {
+      responseDiv.innerHTML = "Error: " + error.message;
+    });
 });
 
 function setCookie(name, value, days) {
