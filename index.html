@@ -3,32 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Video by URL</title>
+  <title>Upload Video File by URL</title>
 </head>
 <body>
-  <h1>Upload Video by URL</h1>
-  
+  <h1>Upload Video File by URL</h1>
   <form id="upload-form">
     <label for="apikey">API Key:</label>
-    <input type="text" id="apikey" name="apikey" required><br><br>
-    
-    <label for="url">Video URL:</label>
-    <input type="text" id="url" name="url" required><br><br>
-    
-    <label for="public">Public Flag:</label>
-    <input type="checkbox" id="public" name="file_public" value="1"><br><br>
-    
-    <label for="adult">Adult Flag:</label>
-    <input type="checkbox" id="adult" name="file_adult" value="1"><br><br>
-    
-    <label for="remember-apikey">Remember API Key:</label>
-    <input type="checkbox" id="remember-apikey" name="remember_apikey"><br><br>
-    
-    <button type="submit">Upload</button>
+    <input type="text" id="apikey" name="apikey" required><br>
+    <label for="url">URL to Video File:</label>
+    <input type="text" id="url" name="url" required><br>
+    <input type="checkbox" id="public" name="public" value="public" checked>
+    <label for="public">Make File Public</label><br>
+    <input type="checkbox" id="adult" name="adult" value="adult">
+    <label for="adult">File Contains Adult Content</label><br>
+    <input type="checkbox" id="remember-apikey" name="remember-apikey" value="remember-apikey">
+    <label for="remember-apikey">Remember API Key</label><br>
+    <input type="submit" id="submit-button" value="Upload">
   </form>
-  
   <div id="response"></div>
-  
+
   <script>
 
 const form = document.getElementById("upload-form");
