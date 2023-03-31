@@ -30,9 +30,9 @@
   <div id="response"></div>
   
   <script>
+
 const form = document.getElementById("upload-form");
 const responseDiv = document.getElementById("response");
-let lastSubmitTime = 0;
 
 const savedApiKey = getCookie("apikey");
 if (savedApiKey) {
@@ -43,34 +43,28 @@ if (savedApiKey) {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const now = new Date().getTime();
-  const elapsedTime = now - lastSubmitTime;
-  if (elapsedTime < 1000) {
-    responseDiv.innerHTML = "Please wait for " + (1000 - elapsedTime) + " milliseconds before submitting again.";
-    return;
+  if (event.submitter && event.submitter.id === "upload-button") {
+    const apikey = document.getElementById("apikey").value;
+    const url = document.getElementById("url").value;
+    const filePublic = document.getElementById("public").checked ? 1 : 0;
+    const fileAdult = document.getElementById("adult").checked ? 1 : 0;
+    const rememberApiKey = document.getElementById("remember-apikey").checked;
+    const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
+
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => {
+        responseDiv.innerHTML = JSON.stringify(data);
+        if (rememberApiKey) {
+          setCookie("apikey", apikey, 30);
+        } else {
+          deleteCookie("apikey");
+        }
+      })
+      .catch(error => {
+        responseDiv.innerHTML = "Error: " + error.message;
+      });
   }
-
-  const apikey = document.getElementById("apikey").value;
-  const url = document.getElementById("url").value;
-  const filePublic = document.getElementById("public").checked ? 1 : 0;
-  const fileAdult = document.getElementById("adult").checked ? 1 : 0;
-  const rememberApiKey = document.getElementById("remember-apikey").checked;
-  const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
-
-  fetch(apiUrl)
-    .then(response => response.json())
-    .then(data => {
-      responseDiv.innerHTML = JSON.stringify(data);
-      if (rememberApiKey) {
-        setCookie("apikey", apikey, 30);
-      } else {
-        deleteCookie("apikey");
-      }
-      lastSubmitTime = now;
-    })
-    .catch(error => {
-      responseDiv.innerHTML = "Error: " + error.message;
-    });
 });
 
 function setCookie(name, value, days) {
@@ -98,6 +92,7 @@ function getCookie(name) {
 function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
+
 
   </script>
 </body>
