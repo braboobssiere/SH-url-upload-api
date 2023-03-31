@@ -43,7 +43,9 @@ if (savedApiKey) {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+});
 
+document.getElementById("submit-button").addEventListener("click", () => {
   const now = new Date().getTime();
   const elapsedTime = now - lastSubmitTime;
   if (elapsedTime < 1000) {
