@@ -44,7 +44,7 @@ if (savedApiKey) {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  if (event.submitter && event.submitter.id === "upload-button" && !submittingForm) {
+  if (event.submitter.id === "upload-button" && !submittingForm) {
     submittingForm = true;
 
     const apikey = document.getElementById("apikey").value;
