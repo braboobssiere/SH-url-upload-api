@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Video by URL</title>
+</head>
+<body>
+  <h1>Upload Video by URL</h1>
+  
+  <form id="upload-form">
+    <label for="apikey">API Key:</label>
+    <input type="text" id="apikey" name="apikey" required><br><br>
+    
+    <label for="url">Video URL:</label>
+    <input type="text" id="url" name="url" required><br><br>
+    
+    <label for="public">Public Flag:</label>
+    <input type="checkbox" id="public" name="file_public" value="1"><br><br>
+    
+    <label for="adult">Adult Flag:</label>
+    <input type="checkbox" id="adult" name="file_adult" value="1"><br><br>
+    
+    <label for="remember-apikey">Remember API Key:</label>
+    <input type="checkbox" id="remember-apikey" name="remember_apikey"><br><br>
+    
+    <button type="submit">Upload</button>
+  </form>
+  
+  <div id="response"></div>
+  
+  <script>
+    const form = document.getElementById("upload-form");
+    const responseDiv = document.getElementById("response");
+    
+    const savedApiKey = getCookie("apikey");
+    if (savedApiKey) {
+      document.getElementById("apikey").value = savedApiKey;
+      document.getElementById("remember-apikey").checked = true;
+    }
+    
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      
+      const apikey = document.getElementById("apikey").value;
+      const url = document.getElementById("url").value;
+      const filePublic = document.getElementById("public").checked ? 1 : 0;
+      const fileAdult = document.getElementById("adult").checked ? 1 : 0;
+      const rememberApiKey = document.getElementById("remember-apikey").checked;
+      const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
+      
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          responseDiv.innerHTML = JSON.stringify(data);
+          if (rememberApiKey) {
+            setCookie("apikey", apikey, 30);
+          } else {
+            deleteCookie("apikey");
+          }
+        })
+        .catch(error => {
+          responseDiv.innerHTML = "Error: " + error.message;
+        });
+    });
+    
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "; expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + expires + "; path=/";
+    }
+    
+    function getCookie(name) {
+      const nameEQ = name + "=";
+      const ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1, c.length);
+        }
+        if (c.indexOf(nameEQ) == 0) {
+          return c.substring(nameEQ.length, c.length);
+        }
+      }
+      return null;
+    }
+    
+    function deleteCookie(name) {
+      document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+  </script>
+</body>
+</html>
