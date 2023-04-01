@@ -1,70 +1,104 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>API Upload</title>
-  </head>
-  <body>
-    <form>
-      <label for="apikey">API Key:</label>
-      <input type="text" id="apikey" name="apikey">
-      <br>
-      <label for="url">Video URL:</label>
-      <input type="text" id="url" name="url">
-      <br>
-      <label for="public">Public:</label>
-      <input type="checkbox" id="public" name="public">
-      <br>
-      <label for="adult">Adult:</label>
-      <input type="checkbox" id="adult" name="adult">
-      <br>
-      <input type="checkbox" id="remember" name="remember" checked>
-      <label for="remember">Remember API Key</label>
-      <br>
-      <button type="button" onclick="submitForm()">Submit</button>
-    </form>
-    <div id="result"></div>
-    <script>
-      let requestSent = false;
-      
-      function submitForm() {
-        if (requestSent) {
-          return;
-        }
-        
-        const apikey = document.getElementById("apikey").value;
-        const url = document.getElementById("url").value;
-        const remember = document.getElementById("remember").checked;
-        const publicFlag = document.getElementById("public").checked ? 1 : 0;
-        const adultFlag = document.getElementById("adult").checked ? 1 : 0;
-        
-        if (remember) {
-          setCookie("apikey", apikey, 365);
-        }
-        
-        if (apikey && url) {
-          requestSent = true;
-          
-          fetch(`https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${publicFlag}&file_adult=${adultFlag}`)
-            .then(response => response.json())
-            .then(data => {
-              const filecode = data.result.filecode;
-              document.getElementById("result").innerHTML = `<p>File uploaded successfully. File code: ${filecode}</p>`;
-              requestSent = false;
-            })
-            .catch(error => {
-              document.getElementById("result").innerHTML = "<p>Failed to upload file. Please check your API key and URL.</p>";
-              requestSent = false;
-            });
-        } else {
-          document.getElementById("result").innerHTML = "<p>Please fill out all required fields.</p>";
-        }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Video File by URL</title>
+</head>
+<body>
+  <h1>Upload Video File by URL</h1>
+  <form id="upload-form">
+    <label for="apikey">API Key:</label>
+    <input type="text" id="apikey" name="apikey" required><br>
+    <label for="url">URL to Video File:</label>
+    <input type="text" id="url" name="url" required><br>
+    <input type="checkbox" id="public" name="public" value="public">
+    <label for="public">Make File Public</label><br>
+    <input type="checkbox" id="adult" name="adult" value="adult">
+    <label for="adult">File Contains Adult Content</label><br>
+    <input type="checkbox" id="remember-apikey" name="remember-apikey" value="remember-apikey" checked>
+    <label for="remember-apikey">Remember API Key</label><br>
+    <input type="submit" id="submit-button" value="Upload">
+  </form>
+  <div id="response"></div>
+
+  <script>
+
+const form = document.getElementById("upload-form");
+const responseDiv = document.getElementById("response");
+let lastSubmitTime = 0;
+
+const savedApiKey = getCookie("apikey");
+if (savedApiKey) {
+  document.getElementById("apikey").value = savedApiKey;
+  document.getElementById("remember-apikey").checked = true;
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+});
+
+document.getElementById("submit-button").addEventListener("click", () => {
+  const now = new Date().getTime();
+  const elapsedTime = now - lastSubmitTime;
+  if (elapsedTime < 1000) {
+    responseDiv.innerHTML = "Please wait for " + (1000 - elapsedTime) + " milliseconds before submitting again.";
+    return;
+  }
+
+  const apikey = document.getElementById("apikey").value;
+  const url = document.getElementById("url").value;
+  const filePublic = document.getElementById("public").checked ? 1 : 0;
+  const fileAdult = document.getElementById("adult").checked ? 1 : 0;
+  const rememberApiKey = document.getElementById("remember-apikey").checked;
+  const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
+
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 200) {
+        responseDiv.innerHTML = "The file was successfully uploaded. Here's your file code: " + data.result.filecode;
+      } else {
+        responseDiv.innerHTML = "There was an error uploading the file: " + data.msg;
       }
-      
-      function setCookie(name, value, days) {
-        const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+      if (rememberApiKey) {
+        setCookie("apikey", apikey, 30);
+      } else {
+        deleteCookie("apikey");
       }
-    </script>
-  </body>
+      lastSubmitTime = now;
+    })
+    .catch(error => {
+      responseDiv.innerHTML = "Error: " + error.message;
+    });
+});
+
+function setCookie(name, value, days) {
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expires = "; expires=" + date.toUTCString();
+  document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1, c.length);
+    }
+    if (c.indexOf(nameEQ) == 0) {
+      return c.substring(nameEQ.length, c.length);
+    }
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+  </script>
+</body>
 </html>
