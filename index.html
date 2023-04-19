@@ -47,7 +47,7 @@ document.getElementById("submit-button").addEventListener("click", () => {
   }
 
   const apikey = document.getElementById("apikey").value;
-  const url = document.getElementById("url").value;
+  const url = encodeURIComponent(document.getElementById("url").value);
   const filePublic = document.getElementById("public").checked ? 1 : 0;
   const fileAdult = document.getElementById("adult").checked ? 1 : 0;
   const rememberApiKey = document.getElementById("remember-apikey").checked;
