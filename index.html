@@ -51,7 +51,7 @@ document.getElementById("submit-button").addEventListener("click", () => {
   const filePublic = document.getElementById("public").checked ? 1 : 0;
   const fileAdult = document.getElementById("adult").checked ? 1 : 0;
   const rememberApiKey = document.getElementById("remember-apikey").checked;
-  const apiUrl = `https://api.streamhide.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
+  const apiUrl = `https://api.streamwish.com/api/upload/url?key=${apikey}&url=${url}&file_public=${filePublic}&file_adult=${fileAdult}`;
 
   fetch(apiUrl)
     .then(response => response.json())
